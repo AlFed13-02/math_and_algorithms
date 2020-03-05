@@ -4,7 +4,7 @@ class Polynomial:
     """Represents a polynomial.
 
     Takes as input a polynomial in standart algebraic
-    notation and constructs its class-based 
+    notation or as a dict instance and constructs its class-based 
     representation.
 
     polynomial    a string representing a polynomial 
@@ -17,28 +17,32 @@ class Polynomial:
     regex = re.compile(pattern)
 
     def __init__(self, polynomial):
-        self.variable = None
-        self._dict_repr = {}
+        if isinstance(polynomial, str):
+            self.variable = None
+            self._dict_repr = {}
         
-        matches = self.regex.finditer(polynomial)
-        for match in matches:
-            member = match.groupdict()
-            if member["power"] is None:
-                member["power"] = ""
+            matches = self.regex.finditer(polynomial)
+            for match in matches:
+                member = match.groupdict()
+                if member["power"] is None:
+                    member["power"] = ""
                 
-            if self.variable is None and member["variable"]:
-                self.variable = member["variable"]
+                if self.variable is None and member["variable"]:
+                    self.variable = member["variable"]
                 
-            if not member["sign"] + member["factor"] + member["power"]:
-                continue
+                if not member["sign"] + member["factor"] + member["power"]:
+                    continue
             
-            member["factor"] = member["factor"] if member["factor"] else 1
-            if not member["power"]:
-                if member["variable"]:
-                    member["power"] = 1
-                else:
-                    member["power"] = 0
-            self._dict_repr[float(member["power"])] = float(f"{member['sign']}{member['factor']}")
+                member["factor"] = member["factor"] if member["factor"] else 1
+                if not member["power"]:
+                    if member["variable"]:
+                        member["power"] = 1
+                    else:
+                        member["power"] = 0
+                self._dict_repr[float(member["power"])] = float(f"{member['sign']}{member['factor']}")
+        elif isinstance(polynomial, dict):
+            self._dict_repr = polynomial
+            self.variable = "x"
 
     @staticmethod        
     def _to_str(dict_, variable):
@@ -65,6 +69,8 @@ class Polynomial:
                     polynomial +=  f"{factor}*{variable}^{power} "
         if polynomial[0] == "-":
             minus = True
+        else:
+            minus = False
         polynomial = polynomial.strip("+- ")
         if minus:
             polynomial = "-" + polynomial
@@ -86,3 +92,6 @@ if __name__ == "__main__":
     poly = Polynomial("-10.0*a^6.0 + 7.0*a^5.0 - 4.0*a^3.0 - 2.0*a^2.0 + a - 1")
     print("polynomial: ", poly)
     print("derivative: ", poly.get_derivative())
+    poly = Polynomial({5: 4, 4: 5, 3: -1, 2: 0, 1: 1, 0: 5})
+    print("dict_polynomial: ", poly)
+    print(poly.get_derivative())
