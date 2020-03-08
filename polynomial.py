@@ -12,7 +12,7 @@ class Polynomial:
                   (e.g. '2*x^2 + 3*x - 2')
     """
 
-    pattern = (r"\s*(?P<sign>[-+]?)\s*(?P<factor>\d*\.?\d*)\s*"
+    pattern = (r"\s*(?P<sign>[-+]?)\s*(?P<coefficient>\d*\.?\d*)\s*"
                r"\*?\s*(?P<variable>[a-z]?)\s*(\^\s*(?P<power>(-[1-9])?[1-9]*\d*))?")
     regex = re.compile(pattern)
 
@@ -30,10 +30,10 @@ class Polynomial:
                 if self.variable is None and member["variable"]:
                     self.variable = member["variable"]
                 
-                if not member["sign"] + member["factor"] + member["power"]:
+                if not member["sign"] + member["coefficient"] + member["power"]:
                     continue
             
-                member["factor"] = member["factor"] if member["factor"] else 1
+                member["coefficient"] = member["coefficient"] if member["coefficient"] else 1
                 if not member["power"]:
                     if member["variable"]:
                         member["power"] = 1
@@ -41,7 +41,7 @@ class Polynomial:
                         member["power"] = 0
         
                 self._dict_repr[int(member["power"])] = float(
-                    f"{member['sign']}{member['factor']}"
+                    f"{member['sign']}{member['coefficient']}"
                 )
                 
         elif isinstance(polynomial, dict):
@@ -53,9 +53,8 @@ class Polynomial:
     def normalize(self):
         """If some power is missed inserts this power in a dict with a value of 0."""
 
-        max_power = max(self._dict_repr.keys())
-        print(max_power)
-        for power in range(max_power + 1):
+        self.power = max(self._dict_repr.keys())
+        for power in range(self.power + 1):
             self._dict_repr.setdefault(power, 0)
 
     def __str__(self):
@@ -67,8 +66,8 @@ class Polynomial:
             sign = "+ " if self._dict_repr[power] > 0 else "- "
             polynomial += sign
 
-            factor = abs(self._dict_repr[power])
-            if factor == 1:
+            coefficient = abs(self._dict_repr[power])
+            if coefficient == 1:
                 if power == 0:
                     polynomial += "1 "
                 elif power == 1:
@@ -77,11 +76,11 @@ class Polynomial:
                     polynomial += f"{self.variable}^{power} "
             else:
                 if power == 0:
-                    polynomial += f"{factor} "
+                    polynomial += f"{coefficient} "
                 elif power == 1:
-                    polynomial += f"{factor}*{self.variable} "
+                    polynomial += f"{coefficient}*{self.variable} "
                 else:
-                    polynomial +=  f"{factor}*{self.variable}^{power} "
+                    polynomial +=  f"{coefficient}*{self.variable}^{power} "
         if polynomial[0] == "-":
             minus = True
         else:
@@ -97,11 +96,24 @@ class Polynomial:
     def get_derivative(self):
         """Calculates the derivative of the polynomial."""
         
-        derivative_dict = {power - 1 : power * factor for power, factor
+        derivative_dict = {power - 1 : power * coefficient for power, coefficient
                            in self._dict_repr.items() if power != 0}
         if -1 in derivative_dict:
             del derivative_dict[-1]
         return self.__class__(derivative_dict, self.variable)
+
+    def __call__(self, x):
+        """Computes the value of the polynomial at x."""
+        result = 0
+        power = self.power
+        while power > 0:
+            result = (result + self._dict_repr[power]) * x
+            power -= 1
+        result = result + self._dict_repr[0]
+        return result
+
+        
+        
 
 
 if __name__ == "__main__":
@@ -111,3 +123,6 @@ if __name__ == "__main__":
     poly = Polynomial({5: 4, 4: 5, 3: -1, 2: 0, 1: 1, 0: 5})
     print("dict_polynomial: ", poly)
     print(poly.get_derivative())
+    poly = Polynomial("x^2 + x + 1")
+    print(poly(0))
+    print(poly(1))
