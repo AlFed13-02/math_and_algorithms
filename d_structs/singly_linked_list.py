@@ -45,18 +45,18 @@ class SinglyLinkedList:
 
     def append(self, e):
         """Inserts the element at the end of the list."""
-        new_node = self._Node(e, None)
-        if is_empty():
+        new_node = self.Node(e, None)
+        if self._is_empty():
             self._head = new_node
         else:
-            self.tail._next = new_node
+            self.tail.next = new_node
         self._size += 1
 
     def appendleft(self, e):
         """Inserts the element at the front of the list."""
-        new_node = self._Node(e, None)
+        new_node = self.Node(e, None)
         if not self._is_empty():
-            new_node._next = self._head
+            new_node.next = self._head
         self._head = new_node
         self._size += 1
 
@@ -69,10 +69,10 @@ class SinglyLinkedList:
             self._head = None
         else:
             second_to_last = self._head
-            while second_to_last._next.next != None:
+            while second_to_last.next.next != None:
                 second_to_last = second_to_last.next
             answer = second_to_last.next.element
-            second_to_last._next = None
+            second_to_last.next = None
         self._size -= 1
         return answer
 
@@ -117,10 +117,11 @@ class SinglyLinkedList:
         if not (type(self) is type(other)):
             raise TypeError("can only concatanate SinglyLinkedList"
                             " to SinglyLinkedList")
-        if self._is_empty:
+        if self._is_empty():
             self._head = other._head
         else:
-            self.tail._next = other._head
+            self.tail.next = other._head
+        return self
 
     __iadd__ = __add__
     extend = __add__
@@ -128,28 +129,31 @@ class SinglyLinkedList:
     def copy(self):
         """Create a shallow copy of the list."""
         new = self.__class__()
-        new._head.element = self._head.element
-
-        prev = new._head
-        walk = self._head.next
-        while walk is not None:
-            next_ = self.Node(walk.element, None)
-            prev.next = next_
-            prev = next_
-            walk = walk.next
+        new._size = self._size
+        if not self._is_empty():
+            new._head = self.Node(self._head.element, None)
+            walk = self._head.next
+            prev = new._head
+            while walk is not None:
+                next_ = self.Node(walk.element, None)
+                prev.next = next_
+                prev = next_
+                walk = walk.next
+        return new
             
     def reverse(self):
         """Reverse the items of the list in place."""
-        prev = self._head
-        cur = prev.next
-        prev._next = None
-        while cur.next is not None:
-            next_ = cur.next
-            cur._next = prev
-            prev = cur
-            cur = next_
-        self._head = cur
-        self._head.next = prev
+        if len(self) > 1:
+            prev = self._head
+            cur = prev.next
+            prev.next = None
+            while cur.next is not None:
+                next_ = cur.next
+                cur.next = prev
+                prev = cur
+                cur = next_
+            self._head = cur
+            self._head.next = prev
 
     def __str__(self):
         """Returns an informal string represantation of the list."""
